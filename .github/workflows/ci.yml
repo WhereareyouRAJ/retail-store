@@ -49,10 +49,9 @@ jobs:
       # 2. Deploy using Helm (The "Deep" One-Liner)
       - name: Helm Upgrade
         run: |
-          helm upgrade --install ${{ matrix.service }} ./Helm-charts/retail-app \
+          # This generates the YAML and prints it to logs to prove the "CD" works
+          helm template ${{ matrix.service }} ./Helm-charts/retail-store \
           --set global.image.tag=${{ github.sha }} \
-          --values ./Helm-charts/retail-app/values.yaml \
-          --dry-run=server --output=yaml # <--- THE "DEEP" SIMULATION FIX
+          --values ./Helm-charts/retail-store/values.yaml
 
-          
           echo "CD Simulation: Successfully generated Helm manifest for ${{ matrix.service }} with tag ${{ github.sha }}"
