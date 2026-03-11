@@ -36,9 +36,10 @@ jobs:
             rajsingh8826/${{ matrix.service }}:${{ github.sha }}
   
   deploy: 
+    needs: build-all
     strategy:
       matrix: 
-        service: [ui, orders, catalog, checkout, cart]
+        service: [ui, orders, catalog, checkout, carts]
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout code
