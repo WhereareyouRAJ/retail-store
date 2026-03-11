@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: checkout
-        image: rajsingh8826/checkout:latest
+        image: rajsingh8826/checkout:a8dd069da0beb9d35671be9d5df6af32ffe34826
         env:
         - name: RETAIL_CHECKOUT_PERSISTENCE_PROVIDER
           value: "redis"
