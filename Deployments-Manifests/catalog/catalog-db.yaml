@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: catalog-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-db
+  template:
+    metadata:
+      labels: 
+        app: catalog-db
+    spec: 
+      containers:
+        - name: catalog-db
+          image: mariadb:10.9
+          env: 
+            - name: MYSQL_ROOT_PASSWORD
+              value: "12345" 
+            - name: MYSQL_USER
+              value: "catalog_user"
+            - name: MYSQL_PASSWORD
+              value: "12345"
+            - name: MYSQL_DATABASE
+              value: "catalogdb"
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "true"
+          ports:
+            - containerPort: 3306
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-db
+spec: 
+  selector:
+    app: catalog-db
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306

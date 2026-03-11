@@ -35,3 +35,15 @@ jobs:
             rajsingh8826/${{ matrix.service }}:latest
             rajsingh8826/${{ matrix.service }}:${{ github.sha }}
   
+  deploy-simulation:
+    runs-on: ubuntu-latest
+    needs: build-all
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: "CD Simulation: Update Manifest"
+        run: |
+          echo "Updating ${{ matrix.service}} manifest with new tag: ${{ github.sha }}"
+          #This sed commands simulates the manifests with new image tag.
+          sed -i "s|image: rajsingh8826/${{ matrix.service }}:latest|image: rajsingh8826/${{ matrix.service }}:${{ github.sha }}|g" ./Deployments-Manifests/${{ matrix.service }}/${{ matrix.service }}.yaml
+          

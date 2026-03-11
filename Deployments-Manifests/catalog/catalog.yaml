@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: catalog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels: 
+        app: catalog
+    spec:
+      containers:
+        - name: catalog
+          image: rajsingh8826/catalog:latest
+          ports: 
+            - containerPort: 8080
+          env: 
+            - name: RETAIL_CATALOG_PERSISTENCE_ENDPOINT
+              value: "catalog-db:3306"
+            - name: RETAIL_CATALOG_PERSISTENCE_PASSWORD
+              value: "12345"
+            - name: RETAIL_CATALOG_PERSISTENCE_PROVIDER
+              value: "mysql"
+            - name: RETAIL_CATALOG_PERSISTENCE_NAME
+              value: "catalogdb"
+            - name: RETAIL_CATALOG_PERSISTENCE_USERNAME
+              value: "catalog_user"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+spec:
+  selector:  
+      app: catalog
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      

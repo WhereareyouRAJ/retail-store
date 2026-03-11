@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: carts
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: carts
+  template: 
+    metadata:
+      labels:
+        app: carts
+    spec:
+      containers:
+        - name: carts
+          image: rajsingh8826/cart:latest
+          env: 
+          - name: SERVER_TOMCAT_ACCESSLOG_ENABLED
+            value: "true"
+          - name: RETAIL_CART_PERSISTENCE_PROVIDER
+            value: "dynamodb"
+          - name: RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT
+            value: "http://carts-db:8000"
+          - name: RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE
+            value: "true"
+          - name: AWS_ACCESS_KEY_ID
+            value: "key"
+          - name: AWS_SECRET_ACCESS_KEY
+            value: "dummy"
+          ports: 
+          - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: carts
+spec:
+  selector: 
+      app: carts
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080 
+          

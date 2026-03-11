@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: orders
+spec: 
+  replicas: 1
+  selector: 
+    matchLabels: 
+      app: orders
+  template: 
+    metadata: 
+      labels: 
+        app: orders
+    spec: 
+      containers: 
+      - name: orders
+        image: rajsingh8826/orders:latest
+        env: 
+        - name: RETAIL_ORDERS_PERSISTENCE_ENDPOINT
+          value: "orders-db:5432"
+        - name: RETAIL_ORDERS_PERSISTENCE_PASSWORD
+          value: "12345"
+        - name: RETAIL_ORDERS_PERSISTENCE_PROVIDER
+          value: "postgres"
+        - name: RETAIL_ORDERS_PERSISTENCE_NAME
+          value: "orders"
+        - name: RETAIL_ORDERS_PERSISTENCE_USERNAME
+          value: "orders_user"
+        - name: RETAIL_ORDERS_MESSAGING_PROVIDER
+          value: "rabbitmq"
+        - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES
+          value: "rabbitmq:5672"
+        - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_USERNAME
+          value: "rabbitmq"
+        - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_PASSWORD
+          value: "12345"
+        ports: 
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: orders
+spec:
+  selector:
+    app: orders
+  ports: 
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+      
