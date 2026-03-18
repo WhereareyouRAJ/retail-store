@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ .Release.Name }}-monitor
+  labels:
+    # This label is critical! It must match what the Prometheus Operator is looking for.
+    release: monitoring 
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: 
+          - {{ .Release.Name }}      # This finds the App (e.g., orders)
+          - {{ .Release.Name }}-db   # This finds the DB (e.g., orders-db)
+  endpoints:
+  - port: {{ if eq .Release.Name "rabbitmq" }}"prometheus"{{ else }}"http"{{ end }} # RabbitMQ needs its 'http' management port
+    path: {{ if or (eq .Release.Name "catalog") (eq .Release.Name "checkout") (eq .Release.Name "rabbitmq") }}"/metrics"{{ else }}"/actuator/prometheus"{{ end }}
+    interval: 15s
+  
+  {{ if (index .Values .Release.Name).exporter }}
+  - port: metrics
+    path: "/metrics"
+    interval: 15s
+  {{- end }}

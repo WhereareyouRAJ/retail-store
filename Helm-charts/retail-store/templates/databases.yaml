@@ -13,7 +13,7 @@ spec:
         app: {{ .Release.Name }}-db
     spec:
       containers:
-      - name: db
+      - name: {{ .Release.Name }}-db
         image: {{ (index .Values .Release.Name).dbImage }}
         env:
         {{- if index .Values .Release.Name "dbEnv" }}
@@ -21,15 +21,44 @@ spec:
         {{- end }}
         ports:
         - containerPort: {{ (index .Values .Release.Name).dbPort }}
+
+      {{- if (index .Values .Release.Name).exporter }}
+      - name: exporter
+        image: {{ (index .Values .Release.Name).exporter.image }}
+        # Logic: Use args for MySQL/MariaDB; use env for others (like Postgres)
+        {{- if eq .Release.Name "catalog" }}
+        args:
+          - "--mysqld.address=127.0.0.1:3306"
+          - "--mysqld.username=catalog_user"
+        env:
+          - name: MYSQLD_EXPORTER_PASSWORD
+            value: "12345" # Use this specific env for the password
+        {{- else }}
+        env:
+          - name: DATA_SOURCE_NAME
+            value: {{ (index .Values .Release.Name).exporter.dsn | quote }}
+        {{- end }}
+        ports:
+        - name: metrics
+          containerPort: {{ (index .Values .Release.Name).exporter.port }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-db
+  labels:                 
+    app: {{ .Release.Name }}-db
 spec:
   selector:
     app: {{ .Release.Name }}-db
   ports:
-    - port: {{ (index .Values .Release.Name).dbPort }}
+    - name: db-port
+      port: {{ (index .Values .Release.Name).dbPort }}
       targetPort: {{ (index .Values .Release.Name).dbPort }}
+    {{ if (index .Values .Release.Name).exporter }}
+    - name: metrics
+      port: {{ (index .Values .Release.Name).exporter.port }}
+      targetPort: {{ (index .Values .Release.Name).exporter.port }}
+    {{- end }}
 {{- end }}

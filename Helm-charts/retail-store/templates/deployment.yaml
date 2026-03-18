@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/actuator/prometheus"
 spec: 
   replicas: 1
   selector:
@@ -14,7 +18,12 @@ spec:
     spec:
       containers:
       - name: {{ .Release.Name }}
+        {{- if eq .Release.Name "rabbitmq" }}
+        image: {{ .Values.rabbitmq.image }}
+        {{- else }}
         image: {{ .Values.global.image.repository }}/{{ .Release.Name }}:{{ .Values.global.image.tag }}
+        {{- end }}
+        
         imagePullPolicy: {{ .Values.global.image.pullPolicy }}
         env:
         # Load service-specific env from values.yaml
@@ -23,17 +32,34 @@ spec:
         {{- end }}
 
         ports:
+        {{- if eq .Release.Name "rabbitmq" }}
+        {{- range .Values.rabbitmq.extraPorts }}
+        - name: {{ .name }}
+          containerPort: {{ .port }}
+        {{- end }}
+        {{- else }}
         - containerPort: {{ .Values.global.containerPort }}
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}
+  labels:                  
+    app: {{ .Release.Name }}
 spec:
   selector:
     app: {{ .Release.Name }}
   type: {{ (index .Values .Release.Name).serviceType | default "ClusterIP" }}
   ports:
-  - protocol: TCP
+  {{- if eq .Release.Name "rabbitmq" }}
+  {{- range .Values.rabbitmq.extraPorts }}
+  - name: {{ .name }}
+    port: {{ .port }}
+    targetPort: {{ .port }}
+  {{- end }} 
+  {{- else }}
+  - name: http
     port: {{ .Values.global.servicePort }}
-    targetPort: {{ .Values.global.containerPort }}
+    targetPort: {{ .Values.global.servicePort }}
+  {{- end }}

@@ -1,7 +1,7 @@
 global:
   image:
     repository: rajsingh8826
-    tag: latest
+    tag: 
     pullPolicy: IfNotPresent
   containerPort: 8080
   servicePort: 8080
@@ -20,6 +20,38 @@ ui:
       value: "http://orders:8080"
     - name: RETAIL_UI_ENDPOINTS_CHECKOUT
       value: "http://checkout:8080"
+    - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+      value: "true"
+    - name: LOGGING_LEVEL_ROOT
+      value: "INFO"
+    - name: RETAIL_UI_CHAT_ENABLED
+      value: "true"
+    - name: RETAIL_UI_CHAT_PROVIDER
+      value: "mock"
+    - name: RETAIL_UI_CHAT_TEMPERATURE
+      value: "0.6"
+    - name: RETAIL_UI_CHAT_MAX_TOKENS
+      value: "300"
+    - name: RETAIL_UI_CHAT_OPENAI_BASE_URL
+      value: "http://localhost:8080"
+
+    - name: RETAIL_UI_CHAT_PROMPT
+      value: "You are a helpful assistant for an online retail store. You can answer questions about products, assist with orders, and provide information about the store's services. Always be polite and provide accurate information based on the user's queries."
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_SDK_DISABLED
+      value: "false" # <--- This is the "Master Override"
+    - name: OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED
+      value: "true"  # <--- This forces the auto-config to run
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://jaeger.monitoring.svc.cluster.local:4318"
+
+
+
 
 orders:
   hasDatabase: true
@@ -32,6 +64,12 @@ orders:
       value: "12345"
     - name: POSTGRES_DB
       value: "orders"
+  exporter:
+    enabled: true
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    port: 9187
+    # The connection string: postgres://user:password@host:port/dbname?sslmode=disable
+    dsn: "postgresql://orders_user:12345@localhost:5432/orders?sslmode=disable"
   env:
     - name: RETAIL_ORDERS_PERSISTENCE_ENDPOINT
       value: "orders-db:5432"
@@ -44,13 +82,28 @@ orders:
     - name: RETAIL_ORDERS_PERSISTENCE_USERNAME
       value: "orders_user"
     - name: RETAIL_ORDERS_MESSAGING_PROVIDER
-      value: "rabbitmq-db"
+      value: "rabbitmq"
     - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES
-      value: "rabbitmq-db:5672"
+      value: "rabbitmq:5672"
     - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_USERNAME
       value: "rabbitmq"
     - name: RETAIL_ORDERS_MESSAGING_RABBITMQ_PASSWORD
       value: "12345"
+    - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+      value: "true"
+    - name: LOGGING_LEVEL_ROOT
+      value: "INFO"
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_SDK_DISABLED
+      value: "false" # <--- This is the "Master Override"
+    - name: OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED
+      value: "true"  # <--- This forces the auto-config to run
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://jaeger.monitoring.svc.cluster.local:4318"
+
 
 carts:
   hasDatabase: true
@@ -69,11 +122,33 @@ carts:
       value: "key"
     - name: AWS_SECRET_ACCESS_KEY
       value: "dummy"
+    - name: MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED
+      value: "true"
+    - name: LOGGING_LEVEL_ROOT
+      value: "INFO"
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_SDK_DISABLED
+      value: "false" # <--- This is the "Master Override"
+    - name: OTEL_JAVA_GLOBAL_AUTOCONFIGURE_ENABLED
+      value: "true"  # <--- This forces the auto-config to run
+    - name: OTEL_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://jaeger.monitoring.svc.cluster.local:4318"
+
 
 checkout:
   hasDatabase: true
   dbImage: redis:6-alpine
   dbPort: 6379
+  exporter:
+    enabled: true
+    image: oliver006/redis_exporter:v1.55.0
+    port: 9121
+    dns: "redis://localhost:6379"
   env:
     - name: RETAIL_CHECKOUT_PERSISTENCE_PROVIDER
       value: "redis"
@@ -81,6 +156,10 @@ checkout:
       value: "redis://checkout-db:6379"
     - name: RETAIL_CHECKOUT_ENDPOINTS_ORDERS
       value: "http://orders:8080"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://jaeger.monitoring.svc.cluster.local:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "checkout"
 
 catalog:
   hasDatabase: true
@@ -108,15 +187,31 @@ catalog:
       value: "catalogdb"
     - name: RETAIL_CATALOG_PERSISTENCE_USERNAME
       value: "catalog_user"
+    - name: OPENTELEMETRY_TRACES_EXPORTER
+      value: "otlp"
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://jaeger.monitoring.svc.cluster.local:4318"
+    - name: OTEL_SERVICE_NAME
+      value: "catalog"
+    # Go often needs the protocol specified explicitly for OTLP
+    - name: OTEL_EXPORTER_OTLP_PROTOCOL
+      value: "http/protobuf"
+  exporter:
+    enabled: true
+    image: prom/mysqld-exporter:v0.15.0
+    port: 9104
+    dsn: "catalog_user:12345@(localhost:3306)/catalogdb"
 
-rabbitmq-db:
-  hasDatabase: true
-  dbImage: rabbitmq:3-management
+rabbitmq:
+  image: rabbitmq:3-management
+  serviceType: LoadBalancer
   extraPorts:
     - name: amqp
       port: 5672
     - name: http
       port: 15672
+    - name: prometheus 
+      port: 15692
   env:
     - name: RABBITMQ_DEFAULT_USER
       value: "rabbitmq"
