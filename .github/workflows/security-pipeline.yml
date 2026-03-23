@@ -37,7 +37,7 @@ jobs:
           context: ${{ inputs.context }}
           push: true
           tags: ${{ vars.DOCKERHUB_USERNAME }}/${{ inputs.image_name }}:latest
-          platform: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64
           sbom: true
           provenance: true
       
