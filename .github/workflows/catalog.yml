@@ -4,8 +4,7 @@ on:
   push:
     paths:
       - './src/catalog/**'
-    branches:
-      - main
+    branches: ["main"]
     workflow_dispatch:
     
 jobs:
