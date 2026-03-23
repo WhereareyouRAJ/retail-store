@@ -9,7 +9,7 @@ on:
 
 jobs:
   call-security-pipeline:
-    uses: ./.github/workflows/reusable-build.yml@main
+    uses: ./.github/workflows/reusable-build.yml
     with:
       image_name: "retail-ui"
       context: "./src/ui/"
