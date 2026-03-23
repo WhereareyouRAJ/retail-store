@@ -2,7 +2,7 @@ services:
   catalog:
     build:
       context: .
-    hostname: catalog
+    hostname: catalog         
     depends_on:
       - catalog-db
         

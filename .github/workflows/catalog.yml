@@ -3,7 +3,7 @@ name: 🚀 Catalog CI
 on:
   push:
     paths:
-      - './src/catalog/**'
+      - 'src/catalog/**'
     branches: ["main"]
     workflow_dispatch:
     
