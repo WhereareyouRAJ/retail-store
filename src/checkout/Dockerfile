@@ -18,6 +18,9 @@ COPY package*.json ./
 
 RUN corepack enable && corepack prepare yarn@4.11.0 --activate
 
+RUN yarn config set nodeLinker node-modules
+
+
 RUN yarn install 
 RUN ls -la /app/node_modules
 
