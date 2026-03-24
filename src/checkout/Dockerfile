@@ -12,7 +12,7 @@ FROM node:20-alpine AS modules
 WORKDIR /app
 COPY package*.json ./
 
-RUN yarn ci --production
+RUN yarn install --production
 
 # Stage 3: Final Stage
 FROM gcr.io/distroless/nodejs20-debian12
