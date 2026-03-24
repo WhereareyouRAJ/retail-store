@@ -22,6 +22,6 @@ COPY . .
 
 USER abc:abc
 
-EXPOSE 8080
+EXPOSE 8080   
 
 ENTRYPOINT ["server,js"]
