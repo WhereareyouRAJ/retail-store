@@ -5,9 +5,7 @@ WORKDIR /app
 
 COPY package.json ./
 
-RUN yarn ci
-
-RUN yarn build     
+RUN yarn install --production    
 
 # Stage 2: Production build
 FROM node:20-alpine AS modules
