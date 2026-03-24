@@ -32,6 +32,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: 🏗️ Build and push Docker image
+        id: build_step
         uses: docker/build-push-action@v4
         with:
           context: ${{ inputs.context }}
@@ -59,3 +60,16 @@ jobs:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
       
+      - name: 📊 Update Inventory
+        run: |
+          echo "TIME: $(date)" >> release.log
+          echo "IMAGE: ${{ inputs.image_name }}" >> release.log
+          echp "DIGEST: ${{ steps.build_step.outputs.digest }}" >> release.log
+          echo "SBOM: ${{ steps.build_step.outputs.sbom }}" >> release.log
+          echo "PROVENANCE: ${{ steps.build_step.outputs.provenance }}" >> release.log
+
+      - name: 📤 Upload release log
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-${{ inputs.image_name }}
+          path: release.log
