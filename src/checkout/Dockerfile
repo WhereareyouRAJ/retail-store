@@ -6,10 +6,12 @@ WORKDIR /app
 COPY .yarnrc.yml ./
 COPY .yarn/ ./.yarn
 COPY package.json yarn.lock ./
+COPY . . 
 
 RUN corepack enable && corepack prepare yarn@4.11.0 --activate
 
-RUN yarn install          
+RUN yarn install 
+RUN yarn build         
     
 # Stage 2: Production build
 FROM node:20-alpine AS modules
@@ -22,18 +24,17 @@ RUN yarn config set nodeLinker node-modules
 
 
 RUN yarn install 
-RUN ls -la /app/node_modules
+
 
 # Stage 3: Final Stage
 FROM gcr.io/distroless/nodejs20-debian12
 WORKDIR /app
 
-
+COPY --from=build /app/dist ./dist
 COPY --from=modules /app/node_modules /app/node_modules 
-COPY . .
 
 USER 65532:65532
 
 EXPOSE 8080   
 
-CMD ["server.js"]
+CMD ["dist/main.js"] 
