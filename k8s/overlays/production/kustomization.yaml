@@ -73,4 +73,5 @@ images:
 - name: rajsingh8826/retail-orders
   newTag: latest
 - name: rajsingh8826/retail-ui
-  newTag: latest
+  newName: rajsingh8826/retail-ui
+  newTag: b21d79e3f91bf5a300660f96c6ce1211ec1e7791
